@@ -4,7 +4,7 @@ import me.dio.domain.model.User;
 import me.dio.domain.repository.UserRepository;
 import me.dio.service.UserService;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -15,17 +15,27 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
     @Override
     public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(NoSuchElementException::new);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + id));
     }
-
     @Override
     public User create(User userToCreate) {
         if (userRepository.existsByAccountNumber(userToCreate.getAccount().getNumber())) {
-            throw new IllegalArgumentException("This Account number already exists.");
+            throw new IllegalArgumentException("This Account number already exists: " 
+                + userToCreate.getAccount().getNumber());
         }
         return userRepository.save(userToCreate);
+    }
+    @Override
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+    @Override
+    public User deleteById(Long id) {
+        User dbUser = this.findById(id);
+        userRepository.deleteById(id);
+        return dbUser;
     }
 }
